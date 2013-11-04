@@ -1,0 +1,64 @@
+extract-coocs
+=============
+
+Pipeline to extract coocurrences from malt-parsed corpora
+
+gbt, Oct 2012
+mcg, Nov 2012
+gbt, Nov 2013
+
+# 0. All purpose
+
+procmalt.py: classes and functions general for MALT-parsed corpora.
+select-rows-from-a-list.py: to select lines in a file that are in another file.
+select-by-first-field.py: the same, but selects tab-separated lines if the first field coincides.
+
+# 1. Counts for target items.
+
+get-content-words.sh: calls extract-content-words.py to extract word counts, does sort + uniq to get actual counts (output .../data/counts/all.content.words).
+==> takes 14 hours.
+
+extract-content-words.py: processes ukwac, wackypedia, bnc to extract content words. Outputs each content word (lemma-pos format) to stdout.
+
+get-ans.sh: calls extract-ans.py to extract AN counts, does sort + uniq to get actual counts (outputs .../data/counts/all.ans.4Kj.8Kn).
+==> takes 14 hours.
+
+extract-ans.py: processes ukwac, wackypedia, bnc to extract ANs where both A and N are targets. Outputs each AN (adj-n_noun-n format) to stdout.
+NOTE GBT: there is an "extract-phrases.py" script that I created to generalize from extract-ans.py. I can't remember how far I went into the thing --- might be in useless shape, I include it for completeness.
+
+# 2. Selection of targets and dims
+
+select-target-and-dims.sh: operations on all.content.words, manually checked (cause it could be that there are multiple items with the same absolute freq; that wasn't the case, though).
+NOTE: includes pruning of target elements via remove-problematic-words.py
+Output: dims-with-freq.10300  targets.4Kj.8Kn (in ../data/counts)
+
+remove-problematic-words.py: see explanation for select-targets-and-dims.sh
+
+# 3. Extraction of co-occurrences.
+
+get-coocs-n-j.sh: calls extract-coocs.py to extract coocs of nouns and adjectives, does sort + uniq to get actual counts (output: .../data/counts/coocs.n.j)
+==> takes 25 hours.
+
+get-coocs-ans.sh: this script not only extracts coocs, but creates the list of target ANs first (ans.peripheral), from the files under ...data/dataset/revised. Then it launches the cooc counting for the ANs in this file, using extract-coocs.py below.
+==> takes 15 hours.
+GBT: MISSING --- not sur ewhat appened.
+
+extract-coocs.py: python script to extract coocs between a set of targets (words or AN phrases) and dims. Call without arguments to see how it works.
+
+# 4. Other
+
+dan2sm.py, sm2dan.py, dm2dan.py: scripts to transform to and from Dan's format to and from a standard sparse (sm) or dense (dm) matrix format.
+
+(
+Dan's format: The format seems to be a sort of hybrid between a dense and sparse representation, right?, where you have one fixed slot for each dimension in each line, and you record the dimension name, except if the value is 0, then you do not write neither the dimension nor the value. So, for:
+
+car red 2
+car blue 5
+box red 0
+box blue 3
+
+you would write (everything tab-separated):
+
+car red 2 blue 5
+box TAB TAB TAB blue 3
+)
